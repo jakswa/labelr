@@ -3,7 +3,6 @@ issues = {}
 window.fetchIssues = (token=window.token, repo='accounts', opts={})->
   $.getJSON("https://api.github.com/repos/vitrue/#{repo}/issues?#{token}&callback=?",(data)->
     json = {issues: data.data}
-    console.log data.data
     labels = []
     $.each(data.data, (index,value)->
       $.each(value.labels, (index,label)->
