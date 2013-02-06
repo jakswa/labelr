@@ -3,6 +3,13 @@
   <head>
     <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet">
     <style type='text/css'>
+      div#app {
+        background: #EEE;
+        padding: 20px;
+      }
+      div#issues-holder {
+        margin-left: 80px;
+      }
       li.issue {
         cursor: pointer;
         -webkit-transition: 0.5s all;
@@ -11,6 +18,10 @@
       li.issue > a {
         text-decoration: none;
         color: black;
+        text-overflow: ellipses;
+      }
+      .assignee {
+        opacity: 0.5;
       }
       li.issue > a:hover .arrow-indicator { display: inline; }
       #labels-holder .label {
@@ -25,13 +36,26 @@
         opacity: 1;
       }
       #issues-holder > ul {
+        margin: 0px; padding: 0px;
         list-style-type: none;
       }
       #issues-holder > ul > li {
-        margin: 5px;
-        padding: 5px;
+        margin: 10px 0px;
+        padding: 0px;
         border-radius: 2px;
         border-bottom: 1px solid #eee;
+        height: 48px;
+        background: rgba(255,255,255,0.8);
+        border-radius: 0px 10px 10px 0;
+        box-shadow: 5px 5px 5px rgba(200,200,200,0.6);
+      }
+      img.avatar {
+        float: left;
+        padding-left: 10px;
+        height: 100%;
+        background: grey;
+        position: relative;
+        right: 10px;
       }
     </style>
     <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.min.js"></script>
@@ -57,7 +81,7 @@
           <p>Ctrl = multiselect<br/>Shift = put at top<br/>Alt = put at bottom</p>
         </div>
 
-        <div id='issues-holder' class='span10'></div>
+        <div id='issues-holder' class='span9'></div>
 
       </div>
     </div>
@@ -68,8 +92,12 @@
     <ul id='issues'>
       {{#issues}}
       <li class='issue'>
+      <img class='avatar' src="{{user.avatar_url}}" style="background: #{{first_label_color}};" />
         <a href="{{html_url}}">{{title}} <span class='arrow-indicator'> &rarr;</span></a>
         <ul class='issue_labels' id='issue_labels_{{number}}'>
+          {{#assignee}}
+          <span class='assignee'>{{login}}</span>
+          {{/assignee}}
           {{#labels}}
           <li style="background: #{{color}};" class='label' data-label-name='{{name}}'>
             {{name}}

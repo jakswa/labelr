@@ -1,10 +1,14 @@
-window.token = "access_token=<YOUR TOKEN HERE>"
 issues = {}
-window.fetchIssues = (token=window.token, repo='accounts', opts={})->
-  $.getJSON("https://api.github.com/repos/vitrue/#{repo}/issues?#{token}&callback=?",(data)->
+window.fetchIssues = (repo='accounts', params)->
+  params = $.extend({access_token: localStorage.getItem('token'), milestone: 4}, params)
+  $.getJSON("https://api.github.com/repos/vitrue/#{repo}/issues?#{$.param(params)}&callback=?",(data)->
     json = {issues: data.data}
+    for issue in json.issues 
+      issue.first_label_color = issue.labels[0].color if issue.labels.length > 0 
     labels = []
+    $('#labels').html('')
     $.each(data.data, (index,value)->
+      console.log value
       $.each(value.labels, (index,label)->
         if label.name not in labels
           $('#labels').append(ich.label(label)) 
@@ -63,6 +67,10 @@ sortIssues = (ev)->
   )
 
 $(document).ready ->
+  unless localStorage.getItem('token')
+    params = {client_id: 'd96cd5d6ff897a568d80'}
+    document.location.href = 'https://github.com/login/oauth/authorize'
+
   search = $('#search')
   search.keyup (ev)->
     filterIssues()
@@ -100,4 +108,4 @@ $(document).ready ->
   )
   $('#top-sort, #bottom-sort').keyup sortIssues
 
-  fetchIssues window.token
+  fetchIssues()
