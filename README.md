@@ -1,7 +1,6 @@
 # Labelr
 
-stuff goes here, if this moves forward
+This is a prettier github issue list. It does what it needs using Github's OAuth API, which means you have to allow it access for it to work.
 
-here's what it looks like in the first commit:
+After authorization, the browser currently makes a single request to github, populating the issue and label lists with the results, and doing a simple sort based on top and bottom labels.
 
-![img](http://i.imgur.com/UbGlHsw.png)

@@ -1,6 +1,10 @@
 issues = {}
+# modified from http://stackoverflow.com/questions/1403888/get-url-parameter-with-jquery
+getURLParameter = (name, params=location.search) -> 
+  decodeURIComponent((new RegExp("[?|&]#{name}=([^&;]+?)(&|##|;|$)").exec(params) || [null,""] )[1].replace(/\+/g, '%20'))||null
+
 window.fetchIssues = (repo='accounts', params)->
-  params = $.extend({access_token: localStorage.getItem('token'), milestone: 4}, params)
+  params = $.extend({access_token: localStorage.getItem('token'), milestone: 5}, params)
   $.getJSON("https://api.github.com/repos/vitrue/#{repo}/issues?#{$.param(params)}&callback=?",(data)->
     json = {issues: data.data}
     for issue in json.issues 
@@ -8,6 +12,11 @@ window.fetchIssues = (repo='accounts', params)->
     labels = []
     $('#labels').html('')
     $.each(data.data, (index,value)->
+      if "Bad credentials" == value
+        localStorage.setItem("bad_token", true)
+        redirectToOauth()
+        return
+
       console.log value
       $.each(value.labels, (index,label)->
         if label.name not in labels
@@ -17,11 +26,14 @@ window.fetchIssues = (repo='accounts', params)->
     )
     $('#issues-holder').html(ich.issues(json))
   ).then(sortIssues)
+
+redirectToOauth = ->
+  document.location.href = "https://github.com/login/oauth/authorize?client_id=d96cd5d6ff897a568d80&scope=repo"
+
 filterIssues = ->
   holder = $('#labels-holder')
   filtering_by_label = holder.hasClass('filtering-by-label')
   search_active = $("#search").val() != ''
-  hide_em = $('#hide-filtered').is(':checked')
 
   active_names = []
   holder.find('li.active').each(->
@@ -37,13 +49,7 @@ filterIssues = ->
     )
     good = false if search_active and not
       issue.html().match(new RegExp($('#search').val(), 'i'))
-    if hide_em
-      $(this).toggle(good)
-    else if good
-      $(this).css('-webkit-filter', '')
-    else
-      $(this).css('-webkit-filter', 'blur(4px) opacity(0.5)')
-
+    $(this).toggle(good)
   )
 
 sortIssues = (ev)->
@@ -67,11 +73,8 @@ sortIssues = (ev)->
   )
 
 $(document).ready ->
-  unless localStorage.getItem('token')
-    params = {client_id: 'd96cd5d6ff897a568d80'}
-    document.location.href = 'https://github.com/login/oauth/authorize'
-
   search = $('#search')
+  code = getURLParameter("code")
   search.keyup (ev)->
     filterIssues()
 
@@ -108,4 +111,22 @@ $(document).ready ->
   )
   $('#top-sort, #bottom-sort').keyup sortIssues
 
-  fetchIssues()
+
+  # time to start things up!
+  # deciding based on 3 user states (in order below):
+  # 1. having already oauthed with good token
+  # 2. coming back from github with code
+  # 3. new visitor needing redirect
+  if (localStorage.getItem("token") and not localStorage.getItem("bad_token"))
+    localStorage.removeItem("bad_token")
+    fetchIssues()
+  else if (code)
+    $.post("http://goauth.jake.dev.cloud.vitrue.com/oauth", {code: code}, (data)->
+      if access_token = getURLParameter("access_token", "?#{data}")
+        localStorage.setItem("token", access_token)
+        fetchIssues()
+      else
+        console.log "Well that didn't work... #{data}"
+    )
+  else
+    redirectToOauth()
