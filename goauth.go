@@ -25,7 +25,6 @@ var (
 
 func codeHandler(w http.ResponseWriter, r *http.Request) {
   code := r.FormValue("code")
-  w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
 
   // go get our OAuth token from github
   resp, _ := http.PostForm("https://github.com/login/oauth/access_token",
@@ -40,6 +39,13 @@ func codeHandler(w http.ResponseWriter, r *http.Request) {
   io.Copy(w, resp.Body)
 }
 
+func handleJS(w http.ResponseWriter, r *http.Request) {
+  http.ServeFile(w,r,"application.js")
+}
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+  http.ServeFile(w,r,"index.html")
+}
+
 func loadConfig() *Config {
   file,err := os.Open("config.yml")
   if err != nil { panic(err) }
@@ -48,17 +54,19 @@ func loadConfig() *Config {
   r := bufio.NewReader(file)
   contents := make([]byte, 1024)
   numberOfBytes, err := r.Read(contents)
-  fmt.Println("read file: ", string(contents))
   yerr := goyaml.Unmarshal(contents[:numberOfBytes], &config)
   if yerr != nil { panic(yerr) }
 
-  fmt.Println("loaded config: ", config)
   return &config
 }
 
 func main() {
   loadConfig()
   http.HandleFunc("/oauth", codeHandler)
+  http.HandleFunc("/", indexHandler)
+  http.HandleFunc("/index.html", indexHandler)
+  http.HandleFunc("/application.js", handleJS)
+  fmt.Println("server started on port 8088")
   http.ListenAndServe(":8088", nil)
 
   fmt.Println("done. exiting...")

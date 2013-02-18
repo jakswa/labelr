@@ -121,7 +121,7 @@ $(document).ready ->
     localStorage.removeItem("bad_token")
     fetchIssues()
   else if (code)
-    $.post("http://goauth.jake.dev.cloud.vitrue.com/oauth", {code: code}, (data)->
+    $.post("/oauth", {code: code}, (data)->
       if access_token = getURLParameter("access_token", "?#{data}")
         localStorage.setItem("token", access_token)
         fetchIssues()
