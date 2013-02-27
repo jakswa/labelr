@@ -11,7 +11,7 @@ import (
   "bufio"
   "io"
   "os"
-  "launchpad.net/goyaml"
+  "github.com/wendal/goyaml"
 )
 
 type Config struct {

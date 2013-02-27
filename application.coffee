@@ -1,11 +1,33 @@
-issues = {}
+
+# I'm getting tired of typing things like 'localStorage.getItem'
+storage = (key, val) ->
+  if val
+    localStorage.setItem(key, val)
+  else
+    localStorage.getItem(key)
+session = (key, val) ->
+  if val
+    sessionStorage.setItem(key, val)
+  else
+    sessionStorage.getItem(key)
+
+
 # modified from http://stackoverflow.com/questions/1403888/get-url-parameter-with-jquery
 getURLParameter = (name, params=location.search) -> 
   decodeURIComponent((new RegExp("[?|&]#{name}=([^&;]+?)(&|##|;|$)").exec(params) || [null,""] )[1].replace(/\+/g, '%20'))||null
 
-window.fetchIssues = (repo='accounts', params)->
-  params = $.extend({access_token: localStorage.getItem('token'), milestone: 5}, params)
-  $.getJSON("https://api.github.com/repos/vitrue/#{repo}/issues?#{$.param(params)}&callback=?",(data)->
+window.fetchIssues = (options, params)->
+  org = storage('org')
+  repo = storage('repo')
+  unless org and repo
+    promptRepos() 
+    return
+
+  params = $.extend({access_token: storage('token'), milestone: 5}, params)
+  purl = $.param(params)
+  url = "https://api.github.com/repos/#{org}/#{repo}/issues?#{purl}&callback=?"
+
+  $.getJSON(url,(data)->
     json = {issues: data.data}
     for issue in json.issues 
       issue.first_label_color = issue.labels[0].color if issue.labels.length > 0 
@@ -13,7 +35,7 @@ window.fetchIssues = (repo='accounts', params)->
     $('#labels').html('')
     $.each(data.data, (index,value)->
       if "Bad credentials" == value
-        localStorage.setItem("bad_token", true)
+        storage("bad_token", true)
         redirectToOauth()
         return
 
@@ -72,6 +94,13 @@ sortIssues = (ev)->
       $('#issues').append issue
   )
 
+promptRepos = () ->
+  org = prompt("Type your github organization (ie 'vitrue'):")
+  repo = prompt("Type a github repo name within #{org}:")
+  storage('org', org)
+  storage('repo', repo)
+  fetchIssues()
+
 $(document).ready ->
   search = $('#search')
   code = getURLParameter("code")
@@ -117,16 +146,23 @@ $(document).ready ->
   # 1. having already oauthed with good token
   # 2. coming back from github with code
   # 3. new visitor needing redirect
-  if (localStorage.getItem("token") and not localStorage.getItem("bad_token"))
+  
+  # TODO: this right
+  storage('org', 'vitrue')
+  storage('repo', 'accounts')
+  if storage('bad_token')
     localStorage.removeItem("bad_token")
+    localStorage.removeItem('token')
+
+  if storage("token")
     fetchIssues()
   else if (code)
     $.post("/oauth", {code: code}, (data)->
       if access_token = getURLParameter("access_token", "?#{data}")
-        localStorage.setItem("token", access_token)
+        storage("token", access_token)
         fetchIssues()
       else
-        console.log "Well that didn't work... #{data}"
+        console.log "Well that didn't work for #{code}... #{data}"
     )
   else
     redirectToOauth()
