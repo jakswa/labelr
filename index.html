@@ -61,6 +61,7 @@
     <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.min.js"></script>
     <script type='text/coffeescript' src="/application.coffee"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
     <script type="text/javascript" src="//github.com/andyet/ICanHaz.js/raw/master/ICanHaz.min.js"></script>
     <script type='text/javascript' src='//jashkenas.github.com/coffee-script/extras/coffee-script.js'></script>
   </head>
@@ -69,6 +70,22 @@
       <div class='row-fluid'>
 
         <div id='menu-holder' class='span2'>
+          <a class='btn' id='switch-repo'>Switch repo</a>
+          <select id='org' class='hidden'>
+            <option selected='selected' disabled='disabled'>
+              Which repos?
+            </option>
+            <option value='owner'>mine</option>
+            <option value='member'>with membership</option>
+          </select>
+          <select id='repo' class='hidden'>
+            <option disabled='disabled'>Repos</option>
+          </select>
+          <a class='btn' id='switch-milestone'>Switch milestone</a>
+          <select id='milestone' class='hidden'>
+            <option selected='selected' disabled='disabled'>select milestone</option>
+            <option>none</option>
+          </select>
           <input type='text' id='search' placeholder='filter those visible' />
           <a class='btn' id='clear-labels'>Clear Labels</a>
           <div id='labels-holder'><ul id='labels'></ul></div>

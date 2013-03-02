@@ -6,3 +6,16 @@ This is a prettier github issue list. It does what it needs using Github's OAuth
 
 After authorization, the browser currently makes a single request to github, populating the issue and label lists with the results, and doing a simple sort based on top and bottom labels.
 
+## Usage/Installation
+
+I modified goauth.go to also serve up the needed html/javascript assets for this to work, so hopefully these instructions will be pretty easy to follow.
+
+1. install [Go](http://golang.org)
+2. clone the repo and cd to it
+3. copy config.yml.example to config.yml, and fill out the client_id and client_secret values
+  - you might need to create a [new Github OAuth App](https://github.com/settings/applications/new) for those values
+4. get the required go dependencies (assumes git is installed)
+  - go get github.com/korbenzhang/goyaml
+5. run it!
+  - go run goauth.go
+6. point your browser at it (localhost:8080)

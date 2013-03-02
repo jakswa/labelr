@@ -23,11 +23,12 @@ window.fetchIssues = (options, params)->
     promptRepos() 
     return
 
-  params = $.extend({access_token: storage('token'), milestone: 5}, params)
-  purl = $.param(params)
-  url = "https://api.github.com/repos/#{org}/#{repo}/issues?#{purl}&callback=?"
+  path = "/repos/#{org}/#{repo}/issues"
+  if storage('milestone')
+    params ?= {}
+    params.milestone = storage('milestone') 
 
-  $.getJSON(url,(data)->
+  gethub(path, params, (data)->
     json = {issues: data.data}
     for issue in json.issues 
       issue.first_label_color = issue.labels[0].color if issue.labels.length > 0 
@@ -94,12 +95,94 @@ sortIssues = (ev)->
       $('#issues').append issue
   )
 
+populateOrgs = ->
+  repoBtn = $('#switch-repo')
+  orglist = $('#org')
+  return if repoBtn.attr('disabled')
+
+  buttonText = repoBtn.html()
+  repoBtn.html('loading...').attr('disabled', 'disabled')
+  gethub '/user/orgs', (data)->
+    repoBtn.html(buttonText)
+    orglist.find('.added').remove()
+    for item in data.data
+      orglist.prepend "<option class='added' value='#{item.login}'>#{item.login}</option>"
+    repoBtn.hide()
+    orglist.removeClass('hidden').show()
+populateRepos = (ev, options={page: 1})->
+  orglist = $('#org')
+  val = orglist.val()
+
+  if val == 'owner'
+    path = '/user/repos'
+    params = {type: 'owner'}
+  else if val == 'member'
+    path = '/user/repos'
+    params = {type: 'member'}
+  else
+    path = "/orgs/#{val}/repos"
+
+  params = $.extend(options, {sort: 'full_name'}, params)
+  gethub path, params, (data) ->
+    repolist = $('#repo')
+
+    #orglist.hide()
+    repolist.removeClass('hidden').show()
+
+    contents = ''
+    console.log "data length: #{data.data.length}"
+    for item in data.data
+      contents = contents + "<option class='added' value='#{item.full_name}'>#{item.name}</option>"
+
+    repolist.find('option.added').remove() if options.page == 1
+    populateRepos(null,{page: options.page + 1}) if data.data.length == 30
+    repolist.append(contents)
+chooseRepo = ->
+  repos = $('#repo')
+  [org, repo] = repos.val().split('/')
+
+  storage('org', org)
+  storage('repo', repo)
+  populateMilestones()
+populateMilestones = ->
+  milestones = $('#milestone').show()
+  $('#switch-milestone').hide()
+  org = storage('org')
+  repo = storage('repo')
+
+  path = "/repos/#{org}/#{repo}/milestones"
+  params = {state: 'open'}
+
+  gethub path, params, (data) ->
+    milestones.find('option.added').remove()
+    for milestone in data.data
+      ele = $("<option class='added' value=#{milestone.number}>#{milestone.title}</option>")
+      if milestone.number == parseInt(storage('milestone'))
+        ele.attr('selected', 'selected') 
+      milestones.append ele
+    milestones.removeClass('hidden').show()
+milestoneChanged = ->
+  milestone = $('#milestone')
+  number = milestone.val()
+  if number == 'none'
+    localStorage.removeItem('milestone')
+  else
+    storage('milestone', number)
+  window.fetchIssues()
+
 promptRepos = () ->
   org = prompt("Type your github organization (ie 'vitrue'):")
   repo = prompt("Type a github repo name within #{org}:")
   storage('org', org)
   storage('repo', repo)
   fetchIssues()
+
+gethub = (path, params, callback) ->
+  callback = params unless callback
+  params = $.extend({access_token: storage('token')}, params)
+  purl = $.param(params)
+  url = "https://api.github.com#{path}?#{purl}&callback=?"
+  $.getJSON(url, callback)
 
 $(document).ready ->
   search = $('#search')
@@ -139,6 +222,11 @@ $(document).ready ->
     filterIssues()
   )
   $('#top-sort, #bottom-sort').keyup sortIssues
+  $('#switch-repo').click populateOrgs
+  $('#switch-milestone').click populateMilestones
+  $('#org').change populateRepos
+  $('#repo').change chooseRepo
+  $('#milestone').change milestoneChanged
 
 
   # time to start things up!
@@ -147,9 +235,6 @@ $(document).ready ->
   # 2. coming back from github with code
   # 3. new visitor needing redirect
   
-  # TODO: this right
-  storage('org', 'vitrue')
-  storage('repo', 'accounts')
   if storage('bad_token')
     localStorage.removeItem("bad_token")
     localStorage.removeItem('token')
