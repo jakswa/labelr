@@ -31,7 +31,7 @@
     org = storage('org');
     repo = storage('repo');
     if (!(org && repo)) {
-      promptRepos();
+      console.log("org and repo are not set! set em!");
       return;
     }
     path = "/repos/" + org + "/" + repo + "/issues";
@@ -315,7 +315,6 @@
     $('#org').change(populateRepos);
     $('#repo').change(chooseRepo);
     $('#milestone').change(milestoneChanged);
-    console.log("HI :)");
     if (storage('bad_token')) {
       localStorage.removeItem("bad_token");
       localStorage.removeItem('token');

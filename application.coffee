@@ -20,7 +20,7 @@ window.fetchIssues = (options, params)->
   org = storage('org')
   repo = storage('repo')
   unless org and repo
-    promptRepos() 
+    console.log "org and repo are not set! set em!"
     return
 
   path = "/repos/#{org}/#{repo}/issues"
