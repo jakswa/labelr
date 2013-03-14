@@ -42,6 +42,9 @@ func codeHandler(w http.ResponseWriter, r *http.Request) {
 func handleJS(w http.ResponseWriter, r *http.Request) {
   http.ServeFile(w,r,"application.js")
 }
+func handleCoffee(w http.ResponseWriter, r *http.Request) {
+  http.ServeFile(w,r,"application.coffee")
+}
 func indexHandler(w http.ResponseWriter, r *http.Request) {
   http.ServeFile(w,r,"index.html")
 }
@@ -66,6 +69,7 @@ func main() {
   http.HandleFunc("/", indexHandler)
   http.HandleFunc("/index.html", indexHandler)
   http.HandleFunc("/application.js", handleJS)
+  http.HandleFunc("/application.coffee", handleCoffee)
   fmt.Println("server started on port 8088")
   http.ListenAndServe(":8088", nil)
 
