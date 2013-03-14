@@ -50,16 +50,24 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func loadConfig() *Config {
+  fmt.Println("setting client_id and client_secret from configs..")
   file,err := os.Open("config.yml")
-  if err != nil { panic(err) }
-  defer file.Close()
+  if err == nil { 
+    fmt.Println("File opened without error, getting them there.")
+    defer file.Close()
 
-  r := bufio.NewReader(file)
-  contents := make([]byte, 1024)
-  numberOfBytes, err := r.Read(contents)
-  yerr := goyaml.Unmarshal(contents[:numberOfBytes], &config)
-  if yerr != nil { panic(yerr) }
+    r := bufio.NewReader(file)
+    contents := make([]byte, 1024)
+    numberOfBytes,_ := r.Read(contents)
+    yerr := goyaml.Unmarshal(contents[:numberOfBytes], &config)
+    if yerr != nil { panic(yerr) }
+  } else {
+    config.ClientId = os.Getenv("CLIENT_ID")
+    config.ClientSecret = os.Getenv("CLIENT_SECRET")
+    fmt.Println("could not find config.yml! hope you set them in the ENV...")
+  }
 
+  fmt.Println("config loaded in to be this client id and secret: ", config)
   return &config
 }
 
