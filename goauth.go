@@ -8,7 +8,6 @@ import (
   "fmt"
   "net/http"
   "net/url"
-  "flag"
   "bufio"
   "io"
   "os"
@@ -22,7 +21,6 @@ type Config struct {
 
 var (
   config = Config{}
-  port *string = flag.String("port", "80", "port to listen on")
 )
 
 func codeHandler(w http.ResponseWriter, r *http.Request) {
@@ -52,8 +50,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func loadConfig() *Config {
-  flag.Parse()
-  
   file,err := os.Open("config.yml")
   if err != nil { panic(err) }
   defer file.Close()
@@ -74,9 +70,13 @@ func main() {
   http.HandleFunc("/index.html", indexHandler)
   http.HandleFunc("/application.js", handleJS)
   http.HandleFunc("/application.coffee", handleCoffee)
-  flag.Parse()
-  fmt.Println("server started on port ", ":" + *port)
-  http.ListenAndServe(":" + *port, nil)
+
+  s := os.Getenv("PORT")
+  if (len(s) == 0) { s = "80" }
+  
+  fmt.Println("server starting on port ", s, "...")
+  err := http.ListenAndServe(":" + s, nil)
+  if err  != nil { panic(err) }
 
   fmt.Println("done. exiting...")
 }
