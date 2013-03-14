@@ -78,6 +78,8 @@ filterIssues = ->
 sortIssues = (ev)->
   top = $("#top-sort").val()
   bottom = $("#bottom-sort").val()
+  storage('top_sort', top) if storage('top_sort') != top
+  storage('bottom_sort', bottom) if storage('bottom_sort') != bottom
   issues = $('#issues > li')
   issues.each(->
     issue = $(this)
@@ -227,7 +229,11 @@ $(document).ready ->
   $('#org').change populateRepos
   $('#repo').change chooseRepo
   $('#milestone').change milestoneChanged
-
+  
+  storage('top_sort', 'bug') unless storage('top_sort')
+  storage('bottom_sort', 'enhancement') unless storage('bottom_sort')
+  $('#top-sort').val(storage('top_sort'))
+  $('#bottom-sort').val(storage('bottom_sort'))
 
   # time to start things up!
   # deciding based on 3 user states (in order below):

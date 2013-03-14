@@ -109,6 +109,12 @@
     var bottom, issues, top;
     top = $("#top-sort").val();
     bottom = $("#bottom-sort").val();
+    if (storage('top_sort') !== top) {
+      storage('top_sort', top);
+    }
+    if (storage('bottom_sort') !== bottom) {
+      storage('bottom_sort', bottom);
+    }
     issues = $('#issues > li');
     return issues.each(function() {
       var down, issue, up;
@@ -315,6 +321,14 @@
     $('#org').change(populateRepos);
     $('#repo').change(chooseRepo);
     $('#milestone').change(milestoneChanged);
+    if (!storage('top_sort')) {
+      storage('top_sort', 'bug');
+    }
+    if (!storage('bottom_sort')) {
+      storage('bottom_sort', 'enhancement');
+    }
+    $('#top-sort').val(storage('top_sort'));
+    $('#bottom-sort').val(storage('bottom_sort'));
     if (storage('bad_token')) {
       localStorage.removeItem("bad_token");
       localStorage.removeItem('token');
